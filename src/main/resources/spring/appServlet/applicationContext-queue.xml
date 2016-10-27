@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation=" 
+         http://www.springframework.org/schema/beans 
+         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context-3.0.xsd
+         http://www.springframework.org/schema/rabbit
+         http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd ">
+
+	<!-- RabbitMq 生产者配置 -->
+	<!--配置connection-factory，指定连接rabbit server参数 -->
+	<rabbit:connection-factory id="rabbitQueueConnectionFactory"
+		host="${rabbitProducer.host}" username="${rabbitProducer.username}"
+		password="${rabbitProducer.password}" port="${rabbitProducer.port}"
+		virtual-host="${rabbitProducer.virtual-host}" />
+	<!--通过指定下面的admin信息，当前producer中的exchange和queue会在rabbitmq服务器上自动生成 -->
+	<rabbit:admin connection-factory="rabbitQueueConnectionFactory" />
+
+	<!--定义rabbit template用于数据的接收和发送 -->
+	<rabbit:template id="rabbitQueueTemplate"
+		connection-factory="rabbitQueueConnectionFactory" exchange="${rabbitProducer.exchange}" />
+		
+<!-- exchange queue binging key 绑定 -->
+    <!-- <rabbit:direct-exchange name="my-mq-exchange" durable="true" auto-delete="false" id="my-mq-exchange">
+        <rabbit:bindings>
+            <rabbit:binding queue="queue_one" key="queue_one_key"/>
+        </rabbit:bindings>
+    </rabbit:direct-exchange> -->
+
+	<bean id="rabbitQueueManager" class="com.niu.abc.queue.RabbitQueueManager">
+		<property name="rabbitQueueTemplate" ref="rabbitQueueTemplate" />
+	</bean>
+<bean id="rabbitConsumer" class="com.niu.abc.queue.RabbitQueueConsumer"></bean>
+	<!-- 消费端 配置 -->
+	<!-- <rabbit:connection-factory id="rabbitConsumerConnectionFactory"
+		virtual-host="${rabbitConsumer.virtual-host}" channel-cache-size="1"
+		requested-heartbeat="20" addresses="${rabbitConsumer.addresses}"
+		username="${rabbitConsumer.username}" password="${rabbitConsumer.password}" />
+	<rabbit:admin connection-factory="rabbitConsumerConnectionFactory" /> -->
+	<!-- 队列声明 -->
+	<rabbit:queue id="dataSyncQueue" durable="true"
+		auto-delete="false" exclusive="false" name="${rabbitConsumer.queuename}" />
+
+	<!-- 消费监听 -->
+	<rabbit:listener-container
+		connection-factory="rabbitQueueConnectionFactory" acknowledge="auto">
+		<!-- 消费者 -->
+		<rabbit:listener ref="rabbitConsumer" queue-names="${rabbitConsumer.queuename}" />
+	</rabbit:listener-container>
+</beans>

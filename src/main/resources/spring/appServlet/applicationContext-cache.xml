@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="  
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<!-- Redis 缓存开始 -->
+
+	<!-- jedisPool配置信息 -->
+	<!-- <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig"> 
+		<property name="maxTotal" value="${redis.maxTotal}" /> <property name="maxIdle" 
+		value="${redis.maxIdle}" /> <property name="maxWaitMillis" value="${redis.maxWaitMillis}" 
+		/> <property name="testOnBorrow" value="${redis.testOnBorrow}" /> <property 
+		name="testOnReturn" value="true" /> <property name="testWhileIdle" value="true" 
+		/> </bean> -->
+	<!-- <bean id="jedisPoolWriper" class="com.chinatelecom.tymh.dataSync.cache.util.JedisPoolWriper" 
+		destroy-method="destroy"> <constructor-arg index="0" ref="jedisPoolConfig" 
+		/> <constructor-arg index="1" value="${redis.host}" /> <constructor-arg index="2" 
+		value="${redis.port}" /> </bean> -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:redis.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 后台redis集群配置 -->
+	<bean id="redisClusterAddress" class="com.niu.abc.InetSocketAddressListFactory">
+		<constructor-arg>
+			<value>${redisclusteraddress}</value>
+		</constructor-arg>
+	</bean>
+	<bean name="genericObjectPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+		<property name="maxTotal" value="1000" />
+		<property name="minIdle" value="8" />
+		<property name="maxIdle" value="20" />
+	</bean>
+	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+		<constructor-arg index="0">
+			<bean factory-bean="redisClusterAddress" factory-method="createAddresses2"></bean>
+		</constructor-arg>
+		<constructor-arg index="1" value="300000" />
+		<constructor-arg index="2" value="6" />
+		<constructor-arg index="3" ref="genericObjectPoolConfig" />
+	</bean>
+	<bean class="com.niu.abc.RedisClient">
+		<property name="jc1" ref="jedisCluster"></property>
+	</bean>
+</beans>
