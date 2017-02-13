@@ -1,1 +1,3 @@
 /target/
+[credential]
+	helper = store
