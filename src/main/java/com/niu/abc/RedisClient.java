@@ -7,7 +7,6 @@ public class RedisClient {
 	private JedisCluster jc1;
 
 	public JedisCluster getJc1() {
-		System.out.println("jc1");
 		return jc1;
 	}
 
