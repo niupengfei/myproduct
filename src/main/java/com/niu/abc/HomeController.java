@@ -30,6 +30,7 @@ public class HomeController {
 	}
 	public static void main(String[] args) {
 		System.out.println("添加一句话1");
+		System.out.println("添加一句话2");
 		System.out.println("hello word!");
 	}
 }
